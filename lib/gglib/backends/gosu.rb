@@ -220,18 +220,22 @@ class GosuBackend
   end
 
   def  set_current_text_input(id)
-    @window.text_input = @text_inputs[id]
+    unless id.nil?
+      @window.text_input = @text_inputs[id]
+    else
+      @window.text_input = nil
+    end
   end
 
-  def get_text_cursor_position(id)
+  def text_cursor_position(id)
     return @text_inputs[id].caret_pos
   end
 
-  def get_text_selection_position(id)
-    return @text_inputs[id].selection_position
+  def text_selection_start_position(id)
+    return @text_inputs[id].selection_start
   end
 
-  def get_text(id)
+  def text(id)
     return @text_inputs[id].text
   end
 

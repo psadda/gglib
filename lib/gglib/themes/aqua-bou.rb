@@ -66,7 +66,7 @@ class AquaBou < CustomTheme
         aquabou_root + 'button',
         GGLib.states(:enabled, :disabled),
         GGLib.margin(0, -15, -35, -11),
-        GGLib.padding()
+        GGLib.padding(-10, 0, -10, 0)
       )
     }
   end

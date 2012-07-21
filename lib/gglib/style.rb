@@ -21,6 +21,20 @@ class Color
   alias :'g=' :'green='
   alias :'b=' :'blue='
 
+  #
+  # r1 = g1 = b1 = a1 = 0.5
+  # r255 = g255 = b255 = a255 = 127
+  #
+  # Color.new # White
+  # Color.new(r1, b1, g1, a1)
+  # Color.new(r255, b255, g255, a255)
+  # Color.new( [r255, b255, g255, a255] )
+  # Color.new( Color.new(r255, b255, g255, a255) )
+  # Color.new( Gosu::Color.new(r255, b255, g255, a255) )
+  # Color.new( RubyGame::ColorRGB(r255, b255, g255, a255) )
+  #
+  # Note: The alpha value is always optional and defaults to full opacity.
+  #
   def initialize(color = nil, green=nil, blue=nil, alpha=255)
     super
 
@@ -90,6 +104,9 @@ class Color
   end
 end
 
+#
+# Specify top, left, right, and bottom measurements in a CSS-like manner.
+#
 class FourSidedStyle
   include Volatile
 
@@ -133,8 +150,14 @@ class FourSidedStyle
   end
 end
 
+#
+# When a Widget is placed into a container, its Margin determines the minimum space between it and its neighbor. Similar to the CSS concept of margins.
+#
 class Margin < FourSidedStyle; end
 
+#
+# Extra space inserted around the central area of a Widget. This is the area of the Widget where text is drawn, if the Widget has any text. Similar to the CSS concept of padding.
+#
 class Padding < FourSidedStyle; end
 
 class Font
@@ -172,6 +195,7 @@ class Font
   attr_volatile :family, :size, :color
 end
 
+#
 # A WidgetStyle determines how a Widget is drawn and how it is layed out within a Container.
 #
 # Attributes which specify how the Widget is layed out within its parent Container:
@@ -191,8 +215,9 @@ end
 # Attributes which specify how the Widget is drawn:
 # +renderer+:: The Renderer object that is responsible for drawing this Widget.
 # +theme+:: The Theme of the Widget. A Theme is a type of Renderer. Setting the theme attribute will also set the renderer attribute.
-# +image+:: The image used to draw the Widget. Setting the image attribute sets renderer to an instance of ImageRenderer.
-# +color+:: The Color of the Widget. Setting this property will cause the Widget to be drawn as a rectangle of the specified Color. Setting the color property sets renderer to an instance of SolidRenderer.
+# +image+:: The image used to draw the Widget. Setting the image attribute sets the renderer to an instance of ImageRenderer.
+# +color+:: The Color of the Widget. Setting this property will cause the Widget to be drawn as a rectangle of the specified Color. Setting the color property sets the renderer to an instance of SolidRenderer.
+#
 class WidgetStyle
   include Volatile
 
@@ -227,7 +252,7 @@ class WidgetStyle
     @image = nil
     @color = nil
     @renderer = nil
-    @theme = DEFAULT_THEME #Not really applying a theme, but remembering it for later when a widget takes ownership
+    @theme = DEFAULT_THEME # Not really applying a theme, but remembering it for later when a widget takes ownership
   end
 
   def initialize_copy(copy)
@@ -244,7 +269,7 @@ class WidgetStyle
     @image = @color = nil
     @image = copy.image.dup unless copy.image.nil?
     @color = copy.color.dup unless copy.color.nil?
-    @theme = copy.theme #Not really applying a theme, but remembering it for later when a widget takes ownership
+    @theme = copy.theme # Not really applying a theme, but remembering it for later when a widget takes ownership
     unless copy.renderer.nil?
       self.renderer = copy.renderer.dup
     else
@@ -314,7 +339,7 @@ class WidgetStyle
     return set_renderer(SolidRenderer.new(@color))
   end
 
-  def configure_renderer #:nodoc:
+  def configure_renderer #:nodoc: (This is an implementation detail.)
     unless @widget.nil? or @renderer.nil?
       unless @widget.window.nil?
         @renderer.backend = @widget.window.backend
@@ -335,7 +360,7 @@ class WidgetStyle
     end
   end
 
-  def set_widget(widget) #:nodoc:
+  def set_widget(widget) #:nodoc: (This is an implementation detail.)
     @widget = widget
     if not @theme.nil? and @renderer.nil?
       #A theme has already been chosen, and now we must apply it to the new widget
@@ -348,6 +373,9 @@ class WidgetStyle
   attr_volatile :theme, :image, :color #Leave out renderer because set_renderer takes care of this stuff
 end
 
+#
+# A ContainerStyle determines how a Container's children are positioned.
+#
 class ContainerStyle < WidgetStyle
   attr_accessor :spacing, :active_area_padding
   attr_volatile :spacing, :active_area_padding

@@ -52,12 +52,13 @@ class Renderable
 end
 
 class SimpleText < Renderable
-  attr_accessor :text, :font
+  attr_accessor :text, :font, :clip
 
   def initialize(backend)
     super
     @text = ''
     @font = @backend.default_font.dup
+    @clip = false
   end
 
   def width
@@ -66,8 +67,13 @@ class SimpleText < Renderable
 
   def draw
     @x2 = @x1 + width
-    #TODO: set y2
-    @backend.draw_text(@font, @x1, @y1, @text, @color)
+    if @clip
+      @backend.draw_clipped @x1, @y1, @x2, @y2 do
+        @backend.draw_text(@font, @x1, @y1, @text, @color)
+      end
+    else
+      @backend.draw_text(@font, @x1, @y1, @text, @color)
+    end
   end
 end
 
@@ -93,6 +99,11 @@ class Text < Renderable
 
   @@fonts = {}
 
+  def text_width(font, text)
+    font_handle = get_font_handle(font.family, font.height)
+    return @backend.text_width(font_handle, text)
+  end
+
   private
   class CachedLine
     attr_accessor :text, :x, :y
@@ -106,14 +117,15 @@ class Text < Renderable
   #
   # Break text into lines.
   #
-  def pass1(text, style, x1, y1, x2, y2, tabsize=4)
+  def pass1(text, style, x1, y1, x2, y2, tabsize = 4)
     output = []
 
     return output if text.empty? or text.strip.empty?
 
-    ws = text.gsub("\t", ' '*tabsize).split(/\S+/).reverse
+    whitespace = text.gsub("\t", ' ' * tabsize).split(/\S+/).reverse
     text = text.split.reverse
-    #ws.push('') if ws.size == text.size
+    #whitespace.push('') if whitespace.size == text.size
+    whitespace.push('') if whitespace.empty?
 
     y1 += style.padding.top
     x1 += style.padding.left
@@ -128,24 +140,27 @@ class Text < Renderable
     newword = nil
     lines = 0
     newline = ''
+    temp_whitespace = nil
 
     while text.size > 0
 
       line = newline
       newword = text.pop
-      lines = ws.last.count("\n")
+      lines = whitespace.last.count("\n")
       if lines == 0
-        newline += ws.pop
-        temp_ws = ''
+        newline += whitespace.pop
+        temp_whitespace = ''
       else
-        temp_ws = ws.pop.gsub(/\A.*\n/, '')
+        temp_whitespace = whitespace.pop.gsub(/\A.*\n/, '')
       end
 
       newline += newword
 
-      if @backend.text_width(font_handle, newline) > width or lines > 0
-        output.push(line.rstrip)
-        newline = temp_ws + newword
+      if style.horizontal_overflow == Overflow::AUTO
+        if @backend.text_width(font_handle, newline) > width or lines > 0
+          output.push(line.rstrip)
+          newline = temp_whitespace + newword
+        end
       end
 
     end
@@ -226,13 +241,35 @@ class Text < Renderable
       return ret
     end
   end
-  
+
+  def draw_text
+    @cached_lines.each do |line|
+      @backend.draw_text(get_font_handle(@style.font.family, @style.font.height), line.x, line.y, line.text, @style.font.color)
+    end
+  end
+
   public
   def draw
     process_text(@text, @style, @x1, @y1, @x2, @y2) if @dirty
     @dirty = false
-    @cached_lines.each do |line|
-      @backend.draw_text(get_font_handle(@style.font.family, @style.font.height), line.x, line.y, line.text, @style.font.color)
+
+    draw_clipped = false
+    clip_x1, clip_x2, clip_y1, clip_y2 = 0, @backend.window_width, 0, @backend.window_height 
+    if @style.horizontal_overflow == Overflow::HIDE
+      clip_x2 = @x2
+      draw_clipped = true
+    end
+    if @style.vertical_overflow == Overflow::HIDE
+      clip_y2 = @y2
+      draw_clipped = true
+    end
+
+    if draw_clipped
+      @backend.draw_clipped(clip_x1, clip_y1, clip_x2, clip_y2) do
+        draw_text
+      end
+    else
+      draw_text
     end
   end
 
@@ -329,6 +366,7 @@ class FlexibleGrid < Renderable
     cell.y2 = y1 + height
   end
 
+  public
   def calculate_dimensions
     top_height = @top.natural_height
     right_width = @right.natural_width

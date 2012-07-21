@@ -72,6 +72,19 @@ class Renderer
     return widget.style
   end
 
+  def content_bounds(widget)
+    return [ [widget.x1, widget.y1], [widget.x2, widget.y2] ]
+  end
+
+  def text_width(widget, text)
+    textp = widget.get_field(:'GGLib.Renderer/text-width-primative')
+    if textp.nil?
+      textp = Primatives::Text.new(@backend) if textp.nil?
+      widget.set_field(:'GGLib.Renderer/text-width-primative', textp)
+    end
+    return textp.text_width(widget.style.font, text)
+  end
+
   #
   # Attempt to draw the given Widget. Return true if the given Widget was drawn and
   # false if it was not drawn. The Widget will not be drawn if it is not inside a MainWindow
@@ -255,6 +268,34 @@ class WidgetRenderer < Renderer
     grid.margin_right = @margin_right
     grid.margin_bottom = @margin_bottom
     return  grid.natural_height
+  end
+
+  def content_bounds(widget)
+    grids = @grids
+    grid = case 
+      when (grids.has_key?(:disabled) and widget.disabled?)
+        grids[:disabled]
+      when (grids.has_key?(:down) and widget.down?)
+        grids[:down]
+      when (grids.has_key?(:focused) and widget.focused?)
+        grids[:focused]
+      when (grids.has_key?(:active) and widget.active?)
+        grids[:active]
+      else
+        grids.fetch(:enabled)
+    end
+    grid.x1, grid.y1, grid.x2, grid.y2 = widget.x1, widget.y1, widget.x2, widget.y2
+    grid.margin_left = @margin_left
+    grid.margin_top = @margin_top
+    grid.margin_right = @margin_right
+    grid.margin_bottom = @margin_bottom
+    grid.calculate_dimensions
+    return (
+      [
+        [grid.center.x1 + @padding_left, grid.center.y1 + @padding_top],
+        [grid.center.x2 - @padding_right, grid.center.y2 - @padding_bottom]
+      ]
+    )
   end
 
   def draw(widget)

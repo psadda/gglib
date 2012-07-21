@@ -483,14 +483,14 @@ module Widget
     return (@style = value)
   end
 
-  def set_container(object) #:nodoc:
+  def set_container(object) #:nodoc: (This is an implementation detail)
     @parent = object
     @window = object.window
     @style.configure_renderer
     return (@parent == object)
   end
 
-  def unset_container(object) #:nodoc:
+  def unset_container(object) #:nodoc: (This is an implementation detail)
     if object == @parent
       @parent = nil
       @window = nil
