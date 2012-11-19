@@ -10,22 +10,28 @@ class LineEdit
   attr_reader :selected_text, :selection
   attr_accessor :cursor_blink_rate
 
-  DEFAULT_CURSOR_BLINK_RATE = 70
+  DefaultCursorBlinkRate = 70
 
   def initialize(maximum_length = nil)
-    super(:text_box)
+    super()
     @text_input = self.window.backend.new_text_input
     @cursor_pos = @x1
     @selection_pos = @x1
-    @cursor_blink_rate = DEFAULT_CURSOR_BLINK_RATE
+    @cursor_blink_rate = DefaultCursorBlinkRate
     @cycles_until_next_cursor_draw = @cursor_blink_rate
 
-    self.style.align = Align::LEFT
-    self.style.vertical_align = VerticalAlign::TOP
-    self.style.horizontal_overflow = Overflow::HIDE
+    self.style.align = Align::Left
+    self.style.vertical_align = VerticalAlign::Top
+    self.style.horizontal_overflow = Overflow::Hide
+
+    self.activatable = true
 
     self.on :activate do |this|
       self.window.backend.set_current_text_input(@text_input)
+    end
+
+    self.on :deactivate do |this|
+      self.window.backend.set_current_text_input(nil)
     end
 
     self.on :update do |this|
@@ -41,16 +47,28 @@ class LineEdit
       end
     end
 
-    self.on :deactivate do |this|
-      self.window.backend.set_current_text_input(nil)
+    self.on :button_down, :key_c do |this|
+      if self.window.button_down?(:key_left_control) or self.window.button_down?(:key_right_control)
+        self.window.clipboard_text = self.selected_text
+      end
     end
+
+    self.on :button_down, :key_v do |this|
+      if self.window.button_down?(:key_left_control) or self.window.button_down?(:key_right_control)
+        self.text += self.window.clipboard_text
+      end
+    end
+  end
+
+  def theme_class
+    :line_edit
   end
 
   def set_container(object) #:nodoc: (This is an implementation detail)
     @cursor = Primatives::Rectangle.new(object.window.backend)
     @selection = Primatives::Rectangle.new(object.window.backend)
     @cursor.color = GGLib::Color.new(0, 0, 0)
-    @selection.color = GGLib::Color.new(255, 255, 255)
+    @selection.color = GGLib::Color.new(255, 255, 0, 75)
     return super
   end
 
@@ -84,6 +102,7 @@ class LineEdit
 
   public
   def draw
+    super
     if @visible
       cb = @style.renderer.content_bounds(self)
       x_offset = cb[0][0]
@@ -112,9 +131,9 @@ class LineEdit
       @selection.y2 = bottom
       @selection.draw
     end
-    return false unless super
+    return @visible
   end
 
 end
 
-end #module GGLib
+end

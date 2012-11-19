@@ -1,10 +1,13 @@
 module GGLib
 
 class Label
+
   include Widget
 
+  theme_class :invisible
+
   def initialize(text = '')
-    super(:invisible)
+    super
     @text = text
     @owner = nil
     self.on :focus do |this|
@@ -22,6 +25,7 @@ class Label
   def unset_owner(widget) #:nodoc: (This is an implementation detail)
     @owner = nil if widget == @owner
   end
+
 end
 
 end #module GGLib

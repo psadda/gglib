@@ -36,7 +36,7 @@ class Color
   # Note: The alpha value is always optional and defaults to full opacity.
   #
   def initialize(color = nil, green=nil, blue=nil, alpha=255)
-    super
+    super()
 
     if color.nil?
       @alpha = @red = @green = @blue = 255
@@ -119,7 +119,7 @@ class FourSidedStyle
   # If four values are given, each parameter is assigned to the corrosponding property.
   #
   def initialize(top = 0, right = nil, bottom = nil, left = nil)
-    super
+    super()
     if right.nil?
       @top = @right = @bottom = @left = top
     else
@@ -168,16 +168,16 @@ class Font
   alias :height :size
   alias :'height=' :'size='
 
-  DEFAULT_FAMILY = 'Verdana'
-  DEFAULT_SIZE = 20
-  DEFAULT_HEIGHT = DEFAULT_SIZE
-  DEFAULT_COLOR = GGLib::Color.new(0, 0, 0)
+  DefaultFamily = 'Verdana'
+  DefaultSize = 20
+  DefaultHeigt = DefaultSize
+  DefaultColor = GGLib::Color.new(0, 0, 0)
 
   def initialize
-    super
-    @family = DEFAULT_FAMILY.dup
-    @size = DEFAULT_SIZE
-    self.color = DEFAULT_COLOR.dup
+    super()
+    @family = DefaultFamily.dup
+    @size = DefaultSize
+    self.color = DefaultColor.dup
   end
 
   def initialize_copy(copy)
@@ -221,38 +221,38 @@ end
 class WidgetStyle
   include Volatile
 
-  DEFAULT_LINE_SPACING = 0
-  DEFAULT_THEME = nil
-  DEFAULT_IMAGE = nil
-  DEFAULT_COLOR = nil
-  DEFAULT_RENDERER = nil
-  DEFAULT_ALIGN = Align::CENTER
-  DEFAULT_VERTICAL_ALIGN = VerticalAlign::MIDDLE
-  DEFAULT_HORIZONTAL_OVERFLOW = Overflow::AUTO
-  DEFAULT_VERTICAL_OVERFLOW = Overflow::AUTO
-  DEFAULT_PADDING = Padding.new
-  DEFAULT_MARGIN = Margin.new(5)
-  DEFAULT_FONT = Font.new
+  DefaultLineSpacing = 0
+  DefaultTheme = nil
+  DefaultImage = nil
+  DefaultColor = nil
+  DefaultRenderer = nil
+  DefaultAlign = Align::Center
+  DefaultVerticalAlign = VerticalAlign::Middle
+  DefaultHorizontalOverflow = Overflow::Auto
+  DefaultVerticalOverflow = Overflow::Auto
+  DefaultPadding = Padding.new
+  DefaultMargin = Margin.new(5)
+  DefaultFont = Font.new
 
   attr_accessor :vertical_align, :align, :horizontal_overflow, :vertical_overflow
   attr_accessor :padding, :margin, :font, :line_spacing
   attr_accessor :renderer, :theme, :image, :color
 
   def initialize
-    super
+    super()
     @widget = nil
-    self.padding = DEFAULT_PADDING.dup
-    self.margin = DEFAULT_MARGIN.dup
-    self.font = DEFAULT_FONT.dup
-    @align = DEFAULT_ALIGN
-    @vertical_align = DEFAULT_VERTICAL_ALIGN
-    @horizontal_overflow = DEFAULT_HORIZONTAL_OVERFLOW
-    @vertical_overflow = DEFAULT_VERTICAL_OVERFLOW
-    @line_spacing = DEFAULT_LINE_SPACING
-    @image = nil
-    @color = nil
-    @renderer = nil
-    @theme = DEFAULT_THEME # Not really applying a theme, but remembering it for later when a widget takes ownership
+    self.padding = DefaultPadding.dup
+    self.margin = DefaultMargin.dup
+    self.font = DefaultFont.dup
+    @align = DefaultAlign
+    @vertical_align = DefaultVerticalAlign
+    @horizontal_overflow = DefaultHorizontalOverflow
+    @vertical_overflow = DefaultVerticalOverflow
+    @line_spacing = DefaultLineSpacing
+    @image = DefaultImage
+    @color = DefaultColor
+    @renderer = DefaultRenderer
+    @theme = DefaultTheme # Not really applying a theme, but remembering it for later when a widget takes ownership
   end
 
   def initialize_copy(copy)
@@ -339,7 +339,7 @@ class WidgetStyle
     return set_renderer(SolidRenderer.new(@color))
   end
 
-  def configure_renderer #:nodoc: (This is an implementation detail.)
+  def configure_renderer #:nodoc: (This is an implementation detail)
     unless @widget.nil? or @renderer.nil?
       unless @widget.window.nil?
         @renderer.backend = @widget.window.backend
@@ -360,7 +360,7 @@ class WidgetStyle
     end
   end
 
-  def set_widget(widget) #:nodoc: (This is an implementation detail.)
+  def set_widget(widget) #:nodoc: (This is an implementation detail)
     @widget = widget
     if not @theme.nil? and @renderer.nil?
       #A theme has already been chosen, and now we must apply it to the new widget
@@ -380,11 +380,11 @@ class ContainerStyle < WidgetStyle
   attr_accessor :spacing, :active_area_padding
   attr_volatile :spacing, :active_area_padding
 
-  DEFAULT_SPACING = Spacing::FLEXIBLE
+  DefaultSpacing = Spacing::Flexible
 
   def initialize
-    super
-    @spacing = DEFAULT_SPACING
+    super()
+    @spacing = DefaultSpacing
   end
 
   def initialize_copy(copy)

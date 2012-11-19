@@ -1,19 +1,18 @@
-
 module GGLib
 
 class Scroll
-  #TODO
-  #recalculate grip range when scrollbar is dirtied
+
+  # TODO: recalculate grip range when scrollbar is damaged
   include CompoundWidget
 
   attr_accessor :value, :range, :type
 
   def initialize(type = :vertical, range =0..100, value = range)
-    super(:invisible)
+    super()
     self.range = range
     self.value = 0..30
     style.padding = Padding.new(1)
-    @container.layout = Layouts::FREE
+    @container.layout = Layouts::Free
     @container.style.renderer = nil
     self.type = type
     @velocity = 1
@@ -31,7 +30,10 @@ class Scroll
     end
   end
 
-  public
+  def theme_class
+    :invisible
+  end
+
   def range=(val)
     @range_start = val.first
     @range_end = val.last
@@ -139,7 +141,7 @@ class Scroll
   def size_grip
     if @value_start <= @range_start and @value_end >= @range_end
       @grip.hide
-      #TODO: create disabled graphics for these
+      # TODO: create disabled graphics for these. The code below wont work until those graphics exist
       #@increase.disable
       #@decrease.disable
       return
@@ -190,8 +192,7 @@ class Scroll
   public
   def type=(val)
     unless val == @type
-      # Don't bother making a change if the new type is the
-      # same as the old type.
+      # Don't bother making a change if the new type is the same as the old type.
       @type = val
       init
     end
@@ -213,72 +214,102 @@ class Scroll
   end
 
   attr_volatile :range, :value, :type
+
 end
 
-class ScrollBar
+class ScrollBar #:nodoc: (This is an implementation detail)
+
   include Widget
+
   def initialize(parent)
-    super(:scroll_bar)
+    super()
     @parent = parent
   end
+
+  def theme_class
+    :scroll_bar
+  end
+
 end
 
-class ScrollIncrease < Button
-  def initialize(parent, theme_class)
-    super('', theme_class)
+class ScrollIncrease < Button #:nodoc: (This is an implementation detail)
+
+  def initialize(parent)
+    super('')
     @parent = parent
   end
+
 end
 
-class ScrollDecrease < Button
-  def initialize(parent, theme_class)
-    super('', theme_class)
+class ScrollDecrease < Button #:nodoc: (This is an implementation detail)
+
+  def initialize(parent)
+    super('')
     @parent = parent
   end
+
 end
 
-class ScrollUp < ScrollDecrease
-  def initialize(parent)
-    super(parent, :scroll_uparrow)
+class ScrollUp < ScrollDecrease #:nodoc: (This is an implementation detail)
+
+  def theme_class
+    :scroll_uparrow
   end
+
 end
 
-class ScrollDown < ScrollIncrease
-  def initialize(parent)
-    super(parent, :scroll_downarrow)
+class ScrollDown < ScrollIncrease #:nodoc: (This is an implementation detail)
+
+  def theme_class
+    :scroll_downarrow
   end
+
 end
 
-class ScrollLeft < ScrollDecrease
-  def initialize(parent)
-    super(parent, :scroll_leftarrow)
+class ScrollLeft < ScrollDecrease #:nodoc: (This is an implementation detail)
+
+  def theme_class
+    :scroll_leftarrow
   end
+
 end
 
-class ScrollRight < ScrollIncrease
-  def initialize(parent)
-    super(parent, :scroll_rightarrow)
+class ScrollRight < ScrollIncrease #:nodoc: (This is an implementation detail)
+
+  def theme_class
+    :scroll_rightarrow
   end
+
 end
 
-class ScrollGrip < Button
-  def initialize(theme_class)
-    super('', theme_class, true)
+class ScrollGrip < Button #:nodoc: (This is an implementation detail)
+
+  def initialize
+    super('', true)
     on :drag do |this, x, y|
       signal(:dragged, x, y) if @enabled
     end
   end
+
 end
 
-class VerticalScrollGrip < ScrollGrip
+# TODO: finish implementation?
+class VerticalScrollGrip < ScrollGrip #:nodoc: (This is an implementation detail)
+
   def initialize(parent)
-    super(:scroll_vgrip)
+    super()
   end
+
+  def theme_class
+    :scroll_vgrip
+  end
+
 end
 
-class HorizontalScrollGrip < ScrollGrip
+class HorizontalScrollGrip < ScrollGrip #:nodoc: (This is an implementation detail)
+
   def initialize(parent)
-    super(:button)
+    super()
     @parent = parent
     @range = range
     on :drag do |this, x, y|
@@ -290,13 +321,20 @@ class HorizontalScrollGrip < ScrollGrip
       @parent.value += (x / ((@range.max - self.width) - @range.first)).to_i
     end
   end
+
+  def theme_class
+    :button # TODO: make an appropriate theme_class
+  end
+
   def range
     return @range
   end
+
   def range=(val)
     
     return (@range = val)
   end
+
 end
 
-end #module GGLib
+end

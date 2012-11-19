@@ -1,127 +1,75 @@
-begin
 require 'gosu'
-rescue LoadError
-end
+
+require $gglroot + '/gglib/backends/gosu/buttons'
 
 module GGLib
 
-class GosuWindowWrapper < Gosu::Window #:nodoc:
-  def initialize(main_window_widget)
+class GosuWindowWrapper < Gosu::Window #:nodoc: (This is an implementation detail)
+
+  def initialize(main_window_widget, width, height, fullscreen, update_interval)
     @main_window_widget = main_window_widget
-    super(640, 480, false)
+    super(width, height, fullscreen, update_interval)
   end
 
   def button_down(id)
-    focused_widget = @main_window_widget.focused_widget
-    active_widget = @main_window_widget.active_widget
-    case id
-      when Gosu::MsLeft
-      @main_window_widget.set_active_widget(focused_widget)
-        focused_widget.signal :mouse_down, :left, mouse_x, mouse_y
-        active_widget.signal :mouse_drag, :start, mouse_x, mouse_y
-        @in_drag = true
-        @drag_x = mouse_x
-        @drag_y = mouse_y
-      when Gosu::MsMiddle
-        focused_widget.signal :mouse_down, :middle
-      when Gosu::MsRight
-        focused_widget.signal :mouse_down, :right
-      else
-        focused_widget.signal :key_down
-    end
+    @main_window_widget.button_down(Buttons::Gosu2GGLib[id])
   end
 
   def button_up(id)
-    focused_widget = @main_window_widget.focused_widget
-    case id
-      when Gosu::MsLeft
-        focused_widget.signal :mouse_up, :left, mouse_x, mouse_y
-        focused_widget.signal :click, mouse_x, mouse_y
-        @in_drag = false
-      when Gosu::MsMiddle
-        focused_widget.signal :mouse_up, :middle, mouse_x, mouse_y
-      when Gosu::MsRight
-        focused_widget.signal :mouse_up, :right, mouse_x, mouse_y
-        active_widget.signal :mouse_drag, :end, mouse_x, mouse_y
-      else
-        focused_widget.signal :key_up
-        focused_widget.signal :key_press
-    end
+    @main_window_widget.button_up(Buttons::Gosu2GGLib[id])
   end
 
   def update
-    begin
-      @main_window_widget.update
-      focused_widget = @main_window_widget.focused_widget
-      if @in_drag
-        @main_window_widget.active_widget.signal(:mouse_drag, :continue, mouse_x - @drag_x, mouse_y - @drag_y)
-        @main_window_widget.active_widget.signal(:drag, mouse_x - @drag_x, mouse_y - @drag_y)
-        @drag_x = mouse_x
-        @drag_y = mouse_y
-      end
-      if button_down?(Gosu::MsLeft)
-        focused_widget.signal :unbuffered_mouse_down, :left, mouse_x, mouse_y
-      end
-      if button_down?(Gosu::MsMiddle)
-        focused_widget.signal :unbuffered_mouse_up, :middle, mouse_x, mouse_y
-      end
-      if button_down?(Gosu::MsRight)
-        focused_widget.signal :unbuffered_mouse_up, :right, mouse_x, mouse_y
-      end
-    rescue SystemExit
-      close
-    rescue Exception => e
-      puts e.message
-      puts e.backtrace
-      close
-    end
-    return nil
+    @main_window_widget.update
   end
 
-  #TODO:fix this method
+  #TODO: fix this method
   #def needs_cursor?
   #  return @main_window_widget.cursor.use_system_cursor?
   #end
+
   def needs_redraw?
     return (@main_window_widget.needs_redraw? or not @main_window_widget.throttle_render?)
   end
 
   def draw
-    begin
-      @main_window_widget.draw
-    rescue SystemExit
-      close
-    rescue Exception => e
-      puts e.message
-      puts e.backtrace
-      close
-    end
-    return nil
+    @main_window_widget.draw
   end
+
 end
 
 class GosuBackend
+
   include Backend
 
-  def initialize(main_window_widget, z = 0)
+  def initialize(main_window_widget, z = 0, width_or_window = nil, height = nil, fullscreen = nil, update_interval = nil)
+    GGLib::backend = self
     @images = { }
     @image_lookup = { }
     @fonts = { }
     @text_inputs = { }
-    @window = nil
     @main_window_widget = main_window_widget
-    create_window
-    @images[0] = Gosu::Image.new(@window, '../media/null.png', false)
-    @image_lookup[File.expand_path('../media/null.png')] = 0
+    if width_or_window.kind_of?(Fixnum)
+      # The caller has supplied parameters to create a window
+      @window = nil
+      create_window
+    elsif width_or_window.kind_of?(Gosu::Window)
+      # The caller has supplied a Gosu::Window
+      @window = width_or_window
+    else
+      raise ArgumentError.new 'Expected a Gosu::Window or parameters for Gosu::Window#initialize'
+    end
+    @images[0] = Gosu::Image.new(@window, $gglroot+'/../media/null.png', false)
+    @image_lookup[File.expand_path($gglroot+'/../media/null.png')] = 0
     @image_count = 1
     @font_count = 0
     @text_input_count = 0
     @z = z
   end
 
-  def create_window
+  def create_window(width = 640, height = 480, fullscreen = false, update_interval = 16.666666)
     if @window.nil?
-      @window = GosuWindowWrapper.new(@main_window_widget)
+      @window = GosuWindowWrapper.new(@main_window_widget, width, height, fullscreen, update_interval)
     end
     return true
   end
@@ -156,7 +104,8 @@ class GosuBackend
     return @window.mouse_y
   end
 
-  def is_button_down?(button)
+  def button_down?(button)
+    return @window.button_down?(Buttons::GGLib2Gosu[button])
   end
 
   def load_font(family, height)
@@ -278,19 +227,64 @@ class GosuBackend
 
 end
 
+# TODO: be more specific in the below documentation about how an internal window is created
 #
 # GosuWindow is a MainWindow implementation for applications using the Gosu library.
 # It is not necessary to use GosuWindow; it is also possible to create and manage a MainWindow
 # directly. GosuWindow is simply a convenience class for developing Gosu applications.
 #
 class GosuWindow
+
   include MainWindow
-  def initialize
+
+  def initialize(width = 640, height = 480, fullscreen = false, update_interval = 16.666666)
     GGLib::default_window = self
-    super(GosuBackend.new(self), nil)
+    super(GosuBackend.new(self, 0, width, height, fullscreen, update_interval))
   end
+
 end
 
 GGLib::default_window = GosuWindow.new
 
-end #module GGLib
+#
+# There are two ways to use The Gosu backend for GGLib:
+#
+# Let GGLib manage the window:
+#
+# GGLib::GosuWindow.new(640, 480, false, 20)
+#
+# Manage the window yourself:
+#
+# class MyCustomGosuWindow < Gosu::Window
+#
+#   attr_reader :main_window_widget
+#
+#   def initialize
+#     super(640, 480, false, 20)
+#     @main_window_widget = GGLib::MainWindow.new
+#   end
+#
+#   def update
+#     @main_window_widget.update
+#   end
+#
+#   def draw
+#     @main_window_widget.draw
+#   end
+#
+#   def button_down(id)
+#     @main_window_widget.button_down(id)
+#   end
+#
+#   def button_up(id)
+#     @main_window_widget.button_up(id)
+#   end
+#
+# end
+#
+# my_window = MyCustomGosuWindow.new(640, 480, false, 20)
+# z_order = 0 # All Gosu objects will be rendered with this z order
+# GGLib::GosuBackend.new(my_window.main_window_widget, z_order, my_window)
+#
+
+end

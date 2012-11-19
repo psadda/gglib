@@ -36,12 +36,15 @@ class RubygameBackend
   def window_width
     @screen.size[0]
   end
+
   def window_height
     @screen.size[1]
   end
+
   def mouse_x
     return @mouse_pos[0]
   end
+
   def mouse_y
     return @mouse_pos[1]
   end
@@ -56,9 +59,11 @@ class RubygameBackend
     end
     return true
   end
+
   def window_is_open
     return Rubygame::Screen::open?
   end
+
   def open_window
     while event = @event_queue.wait
       @main_window_widget.draw
@@ -72,27 +77,32 @@ class RubygameBackend
     end
     return true
   end
+
   def show_window
     return false
   end
+
   def hide_window
     return false
   end
+
   def close_window
     @screen.close
     return true
   end
 
   def load_font(family, height)
-    family = "C:/Windows/Fonts/#{family}.ttf"
+    family = "C:/Windows/Fonts/#{family}.ttf" # TODO: we don't want this to be windows or TTF specific!!
     @font_count+=1
     @fonts[@font_count] = Rubygame::TTF.new(family, height)
     return @font_count
   end
+
   def unload_font(font)
     @fonts.delete(font)
     return font
   end
+
   def text_width(font, text)
     return @fonts[font].size_unicode(text)[0]
   end
@@ -102,13 +112,16 @@ class RubygameBackend
     @images[@image_count] = Rubygame::Surface.load(path).to_display_alpha
     return @image_count
   end
+
   def unload_image(image)
     @images.delete(image)
     return image
   end
+
   def image_height(image)
     return @images[image].height
   end
+
   def image_width(image)
     return @images[image].width
   end
@@ -117,30 +130,37 @@ class RubygameBackend
     @images[image].set_alpha(make_alpha(c)).blit(@screen, [x1, y1])
     return true
   end
+
   def draw_image_stretch(image, x1, y1, x2, y2, c)
     @images[image].zoom_to(x2 - x1, y2 - y1, true).set_alpha(make_alpha(c)).blit(@screen, [x1, y1])
     return true
   end
+
   def draw_rect(x1, y1, x2, y2, c)
     @screen.draw_box_s([x1, y1], [x2, y2], make_color(c))
     return true
   end
+
   def draw_quad(x1, y1, x2, y2, x3, y3, x4, y4, c)
     @screen.draw_polygon_s([ [x1, y1], [x2, y2], [x3, y3], [x4, y4] ], make_color(c)) 
     return true
   end
+
   def draw_triangle(x1, y1, x2, y2, x3, y3, c) 
     @screen.draw_polygon_s([ [x1, y1], [x2, y2], [x3, y3] ], make_color(c)) 
     return true
   end
+
   def draw_line(x1, y1, x2, y2, c)
     @screen.draw_line([x1, y1], [x2, y2], make_color(c))
     return true
   end
+
   def draw_text(font, x, y, text, color)
     @fonts[font].render_unicode(text, true, make_color(color))
     return true
   end
+
   def flush
     return true
   end
@@ -149,9 +169,11 @@ class RubygameBackend
   def make_color(color)
     return GGLib::Color.new(color).to_rubygame
   end
+
   def make_alpha(color)
     return GGLib::Color.new(color).alpha
   end
+
 end
 
 end

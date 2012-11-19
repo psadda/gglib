@@ -1,6 +1,7 @@
 module GGLib
 
 class Enumeration < Module
+
   include Enumerable
 
   def initialize(*elements)
@@ -8,7 +9,15 @@ class Enumeration < Module
     @elements = elements
     @syn = { }
     @elements.each do |e|
-      self.const_set(e.to_s.upcase, e)
+      if e[0].downcase != e[0]
+        self.const_set(e.to_s, e)
+      else
+        s = e.to_s
+        words = s.split('_')
+        words.map! { |word| word.capitalize }
+        s = words.join
+        self.const_set(s, e)
+      end
     end
   end
 
@@ -23,7 +32,7 @@ class Enumeration < Module
   end
 
   def include?(item)
-    return if @syn.has_key?(item)
+    return true if @syn.has_key?(item)
     return (not @elements.index(item).nil?)
   end
 
@@ -38,10 +47,11 @@ class Enumeration < Module
       yield e
     end
   end
+
 end
 
 def GGLib.enum(*params)
   return Enumeration.new(*params)
 end
 
-end #module GGLib
+end

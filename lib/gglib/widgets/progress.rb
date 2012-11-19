@@ -1,12 +1,15 @@
 module GGLib
 
 class Progress
+
   include CompoundWidget
 
   attr_accessor :range, :value
 
+  theme_class :progress_bar
+
   def initialize(range = 0..100, value = 0)
-    super(:progress_bar)
+    super()
     @range = range
     @value = value
     @throbber = false
@@ -19,14 +22,15 @@ class Progress
     @throbber = (@value == :unknown)
     return @value
   end
+
 end
 
 class ProgressFill
+
   include Widget
 
-  def initialize
-    super(:progress_fill)
-  end
+  theme_class :progress_fill
+
 end
 
-end #module GGLib
+end

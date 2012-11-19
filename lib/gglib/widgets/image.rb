@@ -6,12 +6,14 @@ module GGLib
 # Image.new('image.png')
 #
 class Image
+
   include Widget
 
   def initialize(image)
     super
     self.image = image
   end
+
 end
 
-end #module GGLib
+end

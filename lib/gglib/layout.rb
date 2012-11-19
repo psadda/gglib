@@ -21,25 +21,25 @@ class FreeLayout < Layout
     end
     if y_max > container.y2
       case container.style.vertical_overflow
-        when Overflow::AUTO, Overflow::HIDE
+        when Overflow::Auto, Overflow::Hide
           #begin clipping
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::SCROLL
+        when Overflow::Scroll
           #create scrollbar
       end
     end
     if x_max > container.x2
       case container.style.horizontal_overflow
-        when Overflow::AUTO, Overflow::HIDE
+        when Overflow::Auto, Overflow::Hide
           #begin clipping
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::SCROLL
+        when Overflow::Scroll
           #create scrollbar
       end
     end
@@ -71,25 +71,25 @@ class RelativeLayout < Layout
     end
     if y_max > container.y2
       case container.style.vertical_overflow
-        when Overflow::AUTO, Overflow::HIDE
+        when Overflow::Auto, Overflow::Hide
           #begin clipping
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::SCROLL
+        when Overflow::Scroll
           #create scrollbar
       end
     end
     if x_max > container.x2
       case container.style.horizontal_overflow
-        when Overflow::AUTO, Overflow::HIDE
+        when Overflow::Auto, Overflow::Hide
           #begin clipping
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::SCROLL
+        when Overflow::Scroll
           #create scrollbar
       end
     end
@@ -114,29 +114,29 @@ class VerticalLayout < Layout
       if y_position + child.style.margin.top + child.height + child.style.margin.bottom > y_max
         #y overflow
         case container.style.vertical_overflow
-          when Overflow::AUTO
+          when Overflow::Auto
           #next column
             y_position = y_min
             x_position += largest_x
-          when Overflow::SHOW
+          when Overflow::Show
             #do nothing
-          when Overflow::STRETCH
+          when Overflow::Stretch
             #resize container
-          when Overflow::HIDE
+          when Overflow::Hide
             #begin clipping
-          when Overflow::SCROLL
+          when Overflow::Scroll
             #create scrollbar
         end
         if x_position > x_max
           #x overflow
           case container.style.horizontal_overflow
-            when Overflow::AUTO, Overflow::HIDE
+            when Overflow::Auto, Overflow::Hide
               #begin clipping
-            when Overflow::SHOW
+            when Overflow::Show
               #do nothing
-            when Overflow::STRETCH
+            when Overflow::Stretch
               #resize container
-            when Overflow::SCROLL
+            when Overflow::Scroll
               #create scrollbar
             end
             largest_x = 0
@@ -170,29 +170,29 @@ class HorizontalLayout < Layout
       if x_position + child.style.margin.left + child.width + child.style.margin.right > x_max
         #x overflow
         case container.style.horizontal_overflow
-          when Overflow::AUTO
+          when Overflow::Auto
             #next row
             x_position = x_min
             y_position += largest_y
-          when Overflow::SHOW
+          when Overflow::Show
             #do nothing
-          when Overflow::STRETCH
+          when Overflow::Stretch
             #resize container
-          when Overflow::HIDE
+          when Overflow::Hide
             #begin clipping
-          when Overflow::SCROLL
+          when Overflow::Scroll
             #create scrollbar
         end
         if y_position > y_max
           #y overflow
           case container.style.vertical_overflow
-            when Overflow::AUTO, Overflow::HIDE
+            when Overflow::Auto, Overflow::Hide
               #begin clipping
-            when Overflow::SHOW
+            when Overflow::Show
               #do nothing
-            when Overflow::STRETCH
+            when Overflow::Stretch
               #resize container
-            when Overflow::SCROLL
+            when Overflow::Scroll
               #create scrollbar
             end
             largest_y = 0
@@ -211,14 +211,10 @@ class HorizontalLayout < Layout
 end
 
 module Layouts
-  FreeLayout = FreeLayout.new
-  VerticalLayout = VerticalLayout.new
-  HorizontalLayout = HorizontalLayout.new
-  RelativeLayout = RelativeLayout.new
-  FREE = FreeLayout
-  RELATIVE = RelativeLayout
-  VERTICAL = VerticalLayout
-  HORIZONTAL = HorizontalLayout
+  Free = FreeLayout.new
+  Relative = RelativeLayout.new
+  Vertical = VerticalLayout.new
+  Horizontal = HorizontalLayout.new
 end
 
 end #module GGLib

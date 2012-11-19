@@ -90,7 +90,7 @@ class Text < Renderable
     @text = ''
     @events = {}
     @cached_lines = []
-    @style = Widget::DEFAULT_STYLE
+    @style = Widget.default_style
     @dirty = false
     self.subscribe(:modified, self.object_id) do
       @dirty = true
@@ -156,7 +156,7 @@ class Text < Renderable
 
       newline += newword
 
-      if style.horizontal_overflow == Overflow::AUTO
+      if style.horizontal_overflow == Overflow::Auto
         if @backend.text_width(font_handle, newline) > width or lines > 0
           output.push(line.rstrip)
           newline = temp_whitespace + newword
@@ -186,9 +186,9 @@ class Text < Renderable
     width = x2 - x1
     height = y2 - y1
     y_position = case style.vertical_align
-      when VerticalAlign::TOP then y1
-      when VerticalAlign::MIDDLE then y1+ ((height - output_height)/2).floor
-      when VerticalAlign::BOTTOM then y2 - output_height
+      when VerticalAlign::Top then y1
+      when VerticalAlign::Middle then y1+ ((height - output_height)/2).floor
+      when VerticalAlign::Bottom then y2 - output_height
     end
 
     x_position = nil
@@ -198,9 +198,9 @@ class Text < Renderable
     lines.each do |line|
 
       x_position = case style.align
-        when Align::LEFT then x1
-        when Align::RIGHT then x2 - @backend.text_width(font_handle, line)
-        when Align::CENTER then x1 + ( (width - @backend.text_width(font_handle, line)) / 2).floor
+        when Align::Left then x1
+        when Align::Right then x2 - @backend.text_width(font_handle, line)
+        when Align::Center then x1 + ( (width - @backend.text_width(font_handle, line)) / 2).floor
       end
 
       if x_position + @backend.text_width(font_handle, line) > x2
@@ -255,11 +255,11 @@ class Text < Renderable
 
     draw_clipped = false
     clip_x1, clip_x2, clip_y1, clip_y2 = 0, @backend.window_width, 0, @backend.window_height 
-    if @style.horizontal_overflow == Overflow::HIDE
+    if @style.horizontal_overflow == Overflow::Hide
       clip_x2 = @x2
       draw_clipped = true
     end
-    if @style.vertical_overflow == Overflow::HIDE
+    if @style.vertical_overflow == Overflow::Hide
       clip_y2 = @y2
       draw_clipped = true
     end

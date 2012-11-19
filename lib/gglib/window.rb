@@ -1,6 +1,7 @@
 module GGLib
 
 module MainWindow
+
   include Container
 
   attr_accessor :state
@@ -8,11 +9,12 @@ module MainWindow
   attr_reader :focused_widget, :active_widget
   attr_reader :dragged_widget
 
-  def initialize(backend, state)
-    @backend = backend
-    @window_visible = false
+  attr_reader :clipboard_text
 
-    @state = state
+  def initialize(backend)
+    @backend = backend
+
+    @state = nil
 
     @focused_widget = self
     @active_widget = self
@@ -22,18 +24,21 @@ module MainWindow
 
     super()
 
+    @x1 = 0
+    @y1 = 0
+    @x2 = @backend.window_width
+    @y2 = @backend.window_height
+
     @parent = self
     @window = self
 
     @throttle_render = false
 
-    @x1 = 0
-    @y1 = 0
-    @x2 = @backend.window_width
-    @y2 = @backend.window_height
+    @in_drag = false
+    @drag_x = @drag_y = 0
   end
 
-  def visible=(value) #:nodoc: (This is an attribute)
+  def visible=(value) #@api private (This is an attribute)
     if value
       @backend.show_window
     else
@@ -42,7 +47,7 @@ module MainWindow
     return super
   end
 
-  def hidden=(value) #:nodoc: (This is an attribute)
+  def hidden=(value) #@api private (This is an attribute)
     unless value
       @backend.show_window
     else
@@ -65,19 +70,50 @@ module MainWindow
     return @backend.close_window
   end
 
-  def on_button_down(button) #:nodoc: (This is an implementation detail)
-
+  def button_down?(button)
+    return @backend.button_down?(button)
   end
 
-  def on_button_up(button) #:nodoc: (This is an implementation detail)
+  def button_down(button)
+    case button
+      when GGLib::Buttons::MouseLeft
+        set_active_widget(@focused_widget)
+        @focused_widget.signal :mouse_down, :left, @cursor.x, @cursor.y
+        @active_widget.signal :mouse_drag, :start, @cursor.x, @cursor.y
+        @dragged_widget = @active_widget
+        @in_drag = true
+        @drag_x = @cursor.x
+        @drag_y = @cursor.y
+      when GGLib::Buttons::MouseMiddle
+        @focused_widget.signal :mouse_down, :middle
+      when GGLib::Buttons::MouseRight
+        @focused_widget.signal :mouse_down, :right
+      else
+        @focused_widget.signal :button_down, button
+    end
+  end
 
+  def button_up(button)
+    case button
+      when GGLib::Buttons::MouseLeft
+        @focused_widget.signal :mouse_up, :left, @cursor.x, @cursor.y
+        @focused_widget.signal :click, @cursor.x, @cursor.y
+        @dragged_widget.signal :mouse_drag, :end, @cursor.x, @cursor.y
+        @in_drag = false
+      when GGLib::Buttons::MouseMiddle
+        @focused_widget.signal :mouse_up, :middle, @cursor.x, @cursor.y
+      when GGLib::Buttons::MouseRight
+        @focused_widget.signal :mouse_up, :right, @cursor.x, @cursor.y
+      else
+        @focused_widget.signal :button_up, button
+    end
   end
 
   private
   #
   # Check which widget has focus in this update cycle.  This will update the attribute focused_widget.
   #
-  def check_focus
+  def update_focus
     old_focused = @focused_widget
     container = self # The MainWindow is the top level Container.
     new_focused = self # The MainWindow gets focus by default if no other Widget has focus.
@@ -121,11 +157,32 @@ module MainWindow
     return new_focused
   end
 
+  def update_drag
+    if @in_drag
+      @dragged_widget.signal(:mouse_drag, :continue, @cursor.x - @drag_x, @cursor.y - @drag_y)
+      @dragged_widget.signal(:drag, @cursor.x - @drag_x, @cursor.y - @drag_y)
+      @drag_x = @cursor.x
+      @drag_y = @cursor.y
+    end
+=begin
+    if button_down?(Gosu::MsLeft)
+      @focused_widget.signal :unbuffered_mouse_down, :left, mouse_x, mouse_y
+    end
+    if button_down?(Gosu::MsMiddle)
+      @focused_widget.signal :unbuffered_mouse_up, :middle, mouse_x, mouse_y
+    end
+    if button_down?(Gosu::MsRight)
+      @focused_widget.signal :unbuffered_mouse_up, :right, mouse_x, mouse_y
+    end
+=end
+  end
+
   public
   def update
     @cursor.x = @backend.mouse_x
     @cursor.y = @backend.mouse_y
-    check_focus
+    update_focus
+    update_drag
     return super
   end
 
@@ -135,19 +192,21 @@ module MainWindow
     return x
   end
 
-  def set_focused_widget(widget) #:nodoc: (This is an implementation detail)
+  def set_focused_widget(widget) #@api private (This is an implementation detail)
     @focused_widget.notify_blur
     widget.notify_focus
     @focused_widget = widget
   end
 
-  def set_active_widget(widget) #:nodoc: (This is an implementation detail)
+  def set_active_widget(widget) #@api private (This is an implementation detail)
     @active_widget.notify_deactivate
     widget.notify_activate
     @active_widget = widget
   end
 
-  def set_dragged_widget(widget) #:nodoc: (This is an implementation detail)
+  def set_dragged_widget(widget) #@api private (This is an implementation detail)
+    #TODO: is this method used?
+    #TODO: rewrite button_down to use this method to "smart select" the dragged widget.
     until widget.nil?
       if widget.draggable? or widget.kind_of?(MainWindow)
         break
@@ -157,6 +216,7 @@ module MainWindow
     end
     return (@dragged_widget = widget)
   end
+
 end
 
-end #module GGLib
+end

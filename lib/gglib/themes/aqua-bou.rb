@@ -62,6 +62,13 @@ class AquaBou < CustomTheme
         GGLib.padding()
       ),
 
+      :line_edit => GGLib.grid9renderer(
+        aquabou_root + 'line-edit',
+        GGLib.states(:enabled),
+        GGLib.margin(0, -15, -35, -11),
+        GGLib.padding(-10, 0, -10, 0)
+      ),
+
       :default => GGLib.grid9renderer(
         aquabou_root + 'button',
         GGLib.states(:enabled, :disabled),

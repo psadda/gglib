@@ -7,8 +7,10 @@ class RadioButton
   attr_bool :checked
   attr_volatile :checked
 
+  theme_class :radio_button
+
   def initialize(text, value=nil)
-    super(:radio_button)
+    super()
     @text = text
     value = @text if value.nil?
     @value = value
@@ -22,12 +24,13 @@ class RadioGroup
 
   attr_accessor :value
 
+  theme_class :invisible
+
   def initialize(options = { })
     options.each do |key, value|
       add_option key, value
     end
     @checked_button = nil
-    super(:invisible)
   end
 
   def add_option(name, value=nil)

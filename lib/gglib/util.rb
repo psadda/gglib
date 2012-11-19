@@ -106,22 +106,22 @@ end
 module MetadataStore
   def has_field?(field)
     @metadata = { } if @metadata.nil?
-    return @metadata.has_key?(field)
+    return @metadata.has_key?(field.to_sym)
   end
 
   def delete_field(field)
     @metadata = { } if @metadata.nil?
-    return @metadata.delete(field)
+    return @metadata.delete(field.to_sym)
   end
 
   def set_field(field, value)
     @metadata = { } if @metadata.nil?
-    return @metadata[field] = value
+    return @metadata[field.to_sym] = value
   end
 
   def get_field(field)
     @metadata = { } if @metadata.nil?
-    return @metadata[field]
+    return @metadata[field.to_sym]
   end
 end
 

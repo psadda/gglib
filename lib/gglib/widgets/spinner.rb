@@ -1,12 +1,15 @@
 module GGLib
 
 class Spinner
+
   include CompoundWidget
 
   attr_accessor :type
 
+  theme_class :invisible
+
   def initialize(type = :horizontal)
-    super(:invisible)
+    super()
     @container.style.renderer = nil
     @type = type
   end
@@ -34,6 +37,7 @@ class Spinner
   end
 
   attr_volatile :type
+
 end
 
 class SpinnerUp

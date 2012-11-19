@@ -6,12 +6,14 @@ module GGLib
 # end
 #
 class Button
+
   include Widget
 
   attr_accessor :icon
 
-  def initialize(text = '', theme_class = :button, draggable = false, &block)
-    super(theme_class)
+  def initialize(text = '', draggable = false, &block)
+    self.theme_class = :button
+    super()
     @text = text
     @down = false
     on :mouse_down, :left do |this|
@@ -57,6 +59,7 @@ class Button
   def down?
     return @down
   end
+
 end
 
-end #module GGLib
+end

@@ -1,12 +1,14 @@
 module GGLib
 
 class Group
-include Container
+
+  include Container
 
   def initialize
-    super(:group)
+    @theme_class = :group
+    super
   end
 
 end
 
-end #module GGLib
+end

@@ -1,25 +1,31 @@
 module GGLib
 
-Events = enum [
+Events = enum(
   :focus,
   :blur,
   :activate,
   :deactivate,
   :mouse_down,
   :mouse_up,
-  :key_down,
-  :key_up
-]
+  :button_down,
+  :button_up,
+  :update,
+  :draw,
+  :damage
+)
 
 Events.alias :click, :mouse_up
-Events.alias :key_press, :key_up
 
 class EventHandle
+
+  attr_reader :event, :handle_name, :handle_object
+
   def initialize(event, handle_name, handle_object)
     @event = event
     @handle_name = handle_name
     @handle_object = handle_object
   end
+
 end
 
 # A Publisher is any object that allows objects to subscribe to various events.
@@ -33,7 +39,7 @@ module Publisher
     @events = { } if @events.nil?
     @events[event] = [] if @events[event].nil?
     @events[event].push([handler, modifiers])
-    return EventHandle.new(event, handle_name, handler)
+    return EventHandle.new(event, handle_name, [handler, modifiers])
   end
 
   # Similar to subscribe, but without the handle name parameter. A default name of a null string is
@@ -41,6 +47,7 @@ module Publisher
   def on(event, *modifiers, &handler)
     return subscribe(event, '', *modifiers, &handler)
   end
+
   # Remove the event handle with the given name.  If the event handle was registered without a name
   # (using the on method), then it is impossible to delete it with unsubscribe.
   def unsubscribe(event, handle_name = nil)
@@ -76,6 +83,7 @@ module Publisher
   def signal(event, *arguments)
     return publish(event, arguments)
   end
+
 end
 
-end #module GGLib
+end

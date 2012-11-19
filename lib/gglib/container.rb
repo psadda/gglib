@@ -4,11 +4,9 @@ module GGLib
 # A Container is a Widget that can be populated with other Widgets.
 #
 module Container
+
   include Widget
   include Enumerable
-
-  DEFAULT_STYLE = ContainerStyle.new
-  DEFAULT_LAYOUT = Layouts::FreeLayout
 
   attr_reader :children
   attr_reader :vertical_scrollbar, :horizontal_scrollbar
@@ -16,15 +14,34 @@ module Container
   attr_accessor :layout
   attr_bool :auto_z_order
 
-  def initialize(theme_class = :default)
+  @@default_style = ContainerStyle.new
+  @@default_layout = Layouts::Free
+
+  def Container.default_style
+    return @@default_style
+  end
+
+  def Container.default_style=(val)
+    return (@@default_style = val)
+  end
+
+  def Container.default_layout
+    return @@default_layout
+  end
+
+  def Container.default_layout=(val)
+    return (@@default_layout = val)
+  end
+
+  def initialize
     @children = []
     @events = {}
     @coords = [0, 0]
     @vertical_scrollbar = @horizontal_scrollbar = nil
     @auto_z_order = true
-    self.layout = DEFAULT_LAYOUT
-    super(theme_class)
-    self.style = DEFAULT_STYLE.dup
+    self.layout = @@default_layout
+    super
+    self.style = @@default_style.dup
   end
 
   #
@@ -252,16 +269,16 @@ module Container
 
     if @coords[0] > @x2 - @style.padding.right
       case @style.horizontal_overflow
-        when Overflow::AUTO
+        when Overflow::Auto
           #do nothing; layout has already taken care of this
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::HIDE
+        when Overflow::Hide
           do_clip = true
           @clip_right = @x2 - @style.padding.right
-        when Overflow::SCROLL
+        when Overflow::Scroll
           do_clip = true
           @clip_right = @x2 - @style.padding.right
       end
@@ -269,16 +286,16 @@ module Container
 
     if @coords[0] > @y2 - style.padding.bottom
       case @style.vertical_overflow
-        when Overflow::AUTO
+        when Overflow::Auto
           #do nothing; layout has already taken care of this
-        when Overflow::SHOW
+        when Overflow::Show
           #do nothing
-        when Overflow::STRETCH
+        when Overflow::Stretch
           #resize container
-        when Overflow::HIDE
+        when Overflow::Hide
           do_clip = true
           @clip_bottom = @y2 - @style.padding.bottom
-        when Overflow::SCROLL
+        when Overflow::Scroll
           do_clip = true
           @clip_bottom = @y2 - @style.padding.bottom
       end
@@ -305,6 +322,7 @@ module Container
   end
 
   attr_volatile :layout
+
 end
 
 #
@@ -324,11 +342,12 @@ end
 # Container that can be used to hold the sub-widgets.
 #
 module CompoundWidget
+
   include Widget
 
   attr_reader :container
 
-  def initialize(theme_class = :default)
+  def initialize
     super
     @container = CustomContainer.new
     @auto_size_container = true
@@ -373,6 +392,7 @@ module CompoundWidget
     @container.draw if visible
     return visible
   end
+
 end
 
 #
@@ -385,4 +405,4 @@ class CustomCompoundWidget
   include CompoundWidget
 end
 
-end #module GGLib
+end
